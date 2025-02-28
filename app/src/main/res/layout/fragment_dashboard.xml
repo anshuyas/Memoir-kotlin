@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="20dp"
+    android:background="@color/white">
+
+    <TextView
+        android:id="@+id/welcomeText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Welcome to Memoir"
+        android:textSize="22sp"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        android:layout_marginBottom="24dp" />
+
+    <Button
+        android:id="@+id/newEntryButton"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="New Journal Entry"
+        android:backgroundTint="@color/brown"
+        android:textColor="@color/white"
+        android:layout_marginBottom="12dp"/>
+
+    <Button
+        android:id="@+id/viewEntriesButton"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="View Journal Entries"
+        android:backgroundTint="@color/brown"
+        android:textColor="@color/white"
+        android:layout_marginBottom="12dp"/>
+
+    <Button
+        android:id="@+id/calendarButton"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="View Calendar"
+        android:backgroundTint="@color/brown"
+        android:textColor="@color/white"
+        android:layout_marginBottom="12dp"/>
+
+    <Button
+        android:id="@+id/analyticsButton"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="View Analytics"
+        android:backgroundTint="@color/brown"
+        android:textColor="@color/white"
+        android:layout_marginBottom="12dp"/>
+
+</LinearLayout>
