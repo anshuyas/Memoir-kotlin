@@ -39,6 +39,11 @@ class UserViewModel(private val repo: UserRepositoryImpl) : ViewModel() {
      * Attempts to log in the user with the provided email and password.
      */
     fun login(email: String, password: String) {
+        if (email.isEmpty() || password.isEmpty()) {
+            _errorMessage.postValue("Email and password are required")
+            return
+        }
+
         _loading.postValue(true)
         resetError()
 
@@ -57,10 +62,15 @@ class UserViewModel(private val repo: UserRepositoryImpl) : ViewModel() {
      * Attempts to register a new user with the provided email and password.
      */
     fun signup(email: String, password: String) {
+        if (email.isEmpty() || password.isEmpty()) {
+            _errorMessage.postValue("Email and password are required")
+            return
+        }
+
         _loading.postValue(true)
         resetError()
 
-        repo.signup(email, password) { success, _, message ->
+        repo.signup(email, password) { success, userId, message ->
             _loading.postValue(false)
             if (success) {
                 _isRegistrationSuccessful.postValue(true)
@@ -75,16 +85,19 @@ class UserViewModel(private val repo: UserRepositoryImpl) : ViewModel() {
      * Attempts to send a password reset email to the provided email address.
      */
     fun forgetPassword(email: String) {
-        _loading.postValue(true)
-        resetError()
+        if (email.isEmpty()) {
+            _errorMessage.postValue("Email is required")
+            return
+        }
 
         repo.forgetPassword(email) { success, message ->
             _loading.postValue(false)
             if (success) {
                 _isPasswordResetSuccessful.postValue(true)
+                _errorMessage.postValue("Password reset email sent! Check your inbox.")
             } else {
                 _isPasswordResetSuccessful.postValue(false)
-                _errorMessage.postValue(message)
+                _errorMessage.postValue(message ?: "Failed to send password reset email.")
             }
         }
     }

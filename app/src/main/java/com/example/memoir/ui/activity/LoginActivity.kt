@@ -6,6 +6,7 @@ import android.util.Log
 import android.util.Patterns
 import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -28,6 +29,7 @@ class LoginActivity : AppCompatActivity() {
         val passwordInput = findViewById<EditText>(R.id.password)
         val loginButton = findViewById<Button>(R.id.loginButton)
         val registerButton = findViewById<Button>(R.id.registerButton)
+        val forgotPasswordLink = findViewById<TextView>(R.id.forgotPasswordLink)
 
         // Initialize ViewModel with Factory
         val repo = UserRepositoryImpl()
@@ -46,6 +48,10 @@ class LoginActivity : AppCompatActivity() {
 
         registerButton.setOnClickListener {
             startActivity(Intent(this, RegistrationActivity::class.java))
+        }
+
+        forgotPasswordLink.setOnClickListener {
+            startActivity(Intent(this, ForgotPasswordActivity::class.java))
         }
 
         // Observe ViewModel LiveData

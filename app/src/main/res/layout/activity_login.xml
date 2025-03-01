@@ -76,12 +76,16 @@
 
     <!-- Forgot Password Link -->
     <TextView
-        android:id="@+id/forgotPassword"
+        android:id="@+id/forgotPasswordLink"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Forgot Password?"
-        android:textColor="@color/gray"
-        android:textSize="14sp"
-        android:layout_gravity="center"/>
+        android:textColorLink="@color/black"
+        android:textColor="@color/black"
+        android:clickable="true"
+        android:focusable="true"
+        android:padding="8dp"
+        android:textStyle="bold"
+        android:autoLink="web" />
 
 </LinearLayout>
