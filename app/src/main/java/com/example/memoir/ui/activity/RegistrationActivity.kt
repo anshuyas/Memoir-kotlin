@@ -2,18 +2,21 @@ package com.example.memoir.ui.activity
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Patterns
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import com.example.memoir.R
+import com.example.memoir.repository.UserRepositoryImpl
 import com.example.memoir.viewmodel.UserViewModel
+import com.example.memoir.viewmodel.UserViewModelFactory
 
 class RegistrationActivity : AppCompatActivity() {
 
-    private val userViewModel: UserViewModel by viewModels()
+    private lateinit var userViewModel: UserViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,27 +27,48 @@ class RegistrationActivity : AppCompatActivity() {
         val passwordInput = findViewById<EditText>(R.id.password)
         val registerButton = findViewById<Button>(R.id.registerButton)
 
+        // Initialize ViewModel with Factory
+        val repo = UserRepositoryImpl()
+        val factory = UserViewModelFactory(repo)
+        userViewModel = ViewModelProvider(this, factory)[UserViewModel::class.java]
+
         registerButton.setOnClickListener {
             val email = emailInput.text.toString().trim()
             val password = passwordInput.text.toString().trim()
 
-            if (email.isNotEmpty() && password.length >= 6) { // Basic validation
+            if (validateInput(email, password)) {
                 registerUser(email, password)
-            } else {
-                Toast.makeText(this, "Enter valid email and password (6+ chars)", Toast.LENGTH_SHORT).show()
             }
+        }
+    }
+
+    private fun validateInput(email: String, password: String): Boolean {
+        return when {
+            email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
+                showToast("Enter a valid email")
+                false
+            }
+            password.length < 8 -> {
+                showToast("Password must be at least 8 characters long")
+                false
+            }
+            else -> true
         }
     }
 
     private fun registerUser(email: String, password: String) {
         userViewModel.signup(email, password) { success, userId, message ->
             if (success) {
-                Toast.makeText(this, "Registration Successful!", Toast.LENGTH_SHORT).show()
+                showToast("Registration Successful!")
                 startActivity(Intent(this, LoginActivity::class.java))
                 finish()
             } else {
-                Toast.makeText(this, "Error: $message", Toast.LENGTH_SHORT).show()
+                showToast("Error: $message")
             }
         }
+    }
+
+    private fun showToast(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 }

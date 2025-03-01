@@ -1,26 +1,17 @@
 package com.example.memoir.ui.fragment
 
-import android.app.Activity
-import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.provider.MediaStore
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.example.memoir.databinding.FragmentEditProfileBinding
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
-
 
 class EditProfileFragment : Fragment() {
     private var _binding: FragmentEditProfileBinding? = null
@@ -35,7 +26,7 @@ class EditProfileFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _binding = FragmentEditProfileBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -48,13 +39,12 @@ class EditProfileFragment : Fragment() {
 
         val currentUser = auth.currentUser
         if (currentUser == null) {
-            Toast.makeText(requireContext(), "User not logged in", Toast.LENGTH_SHORT).show()
+            showToast("User not logged in")
             return
         }
 
         database = FirebaseDatabase.getInstance().reference.child("Users").child(currentUser.uid)
 
-        // Load user data
         loadUserData()
 
         binding.changeProfilePictureButton.setOnClickListener {
@@ -70,36 +60,35 @@ class EditProfileFragment : Fragment() {
         database.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (!snapshot.exists()) {
-                    Toast.makeText(requireContext(), "User data not found", Toast.LENGTH_SHORT).show()
+                    showToast("User data not found")
                     return
                 }
 
-                val username = snapshot.child("username").getValue(String::class.java)
-                val email = snapshot.child("email").getValue(String::class.java)
-                val profileImageUrl = snapshot.child("profileImageUrl").getValue(String::class.java)
+                binding.apply {
+                    editTextUsername.setText(snapshot.child("username").getValue(String::class.java))
+                    editTextEmail.setText(snapshot.child("email").getValue(String::class.java))
+                    editTextEmail.isEnabled = false
 
-                binding.editTextUsername.setText(username)
-                binding.editTextEmail.setText(email)
-                binding.editTextEmail.isEnabled = false
-
-                if (!profileImageUrl.isNullOrEmpty()) {
-                    Glide.with(this@EditProfileFragment)
-                        .load(profileImageUrl)
-                        .into(binding.profileImageView)
+                    val profileImageUrl = snapshot.child("profileImageUrl").getValue(String::class.java)
+                    if (!profileImageUrl.isNullOrEmpty()) {
+                        Glide.with(this@EditProfileFragment)
+                            .load(profileImageUrl)
+                            .into(profileImageView)
+                    }
                 }
             }
 
             override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(requireContext(), "Failed to load user data", Toast.LENGTH_SHORT).show()
+                showToast("Failed to load user data: ${error.message}")
             }
         })
     }
 
     private val imagePickerLauncher =
-        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-            if (uri != null) {
-                imageUri = uri
-                binding.profileImageView.setImageURI(uri)
+        registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.GetContent()) { uri ->
+            uri?.let {
+                imageUri = it
+                binding.profileImageView.setImageURI(it)
             }
         }
 
@@ -116,32 +105,37 @@ class EditProfileFragment : Fragment() {
 
         val updates = hashMapOf<String, Any>("username" to newUsername)
 
-        // If a new image is selected, upload it first
-        if (imageUri != null) {
+        imageUri?.let { uri ->
             val storageRef = storage.reference.child("profile_pictures/${auth.currentUser!!.uid}.jpg")
-            storageRef.putFile(imageUri!!)
-                .addOnSuccessListener {
-                    storageRef.downloadUrl.addOnSuccessListener { uri ->
-                        updates["profileImageUrl"] = uri.toString()
-                        updateUserData(updates)
+            storageRef.putFile(uri)
+                .continueWithTask { task ->
+                    if (!task.isSuccessful) {
+                        throw task.exception ?: Exception("Image upload failed")
                     }
+                    storageRef.downloadUrl
                 }
-                .addOnFailureListener {
-                    Toast.makeText(requireContext(), "Failed to upload image", Toast.LENGTH_SHORT).show()
+                .addOnSuccessListener { downloadUri ->
+                    updates["profileImageUrl"] = downloadUri.toString()
+                    updateUserData(updates)
                 }
-        } else {
-            updateUserData(updates)
-        }
+                .addOnFailureListener { e ->
+                    showToast("Failed to upload image: ${e.message}")
+                }
+        } ?: updateUserData(updates)
     }
 
     private fun updateUserData(updates: HashMap<String, Any>) {
         database.updateChildren(updates)
             .addOnSuccessListener {
-                Toast.makeText(requireContext(), "Profile updated", Toast.LENGTH_SHORT).show()
+                showToast("Profile updated successfully")
             }
-            .addOnFailureListener {
-                Toast.makeText(requireContext(), "Failed to update profile", Toast.LENGTH_SHORT).show()
+            .addOnFailureListener { e ->
+                showToast("Failed to update profile: ${e.message}")
             }
+    }
+
+    private fun showToast(message: String) {
+        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
     }
 
     override fun onDestroyView() {
@@ -149,4 +143,3 @@ class EditProfileFragment : Fragment() {
         _binding = null
     }
 }
-

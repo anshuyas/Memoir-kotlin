@@ -12,7 +12,7 @@ class UserRepositoryImpl : UserRepository {
                 if (task.isSuccessful) {
                     callback(true, "Login successful")
                 } else {
-                    callback(false, task.exception?.message ?: "Login failed")
+                    callback(false, task.exception?.localizedMessage ?: "Login failed")
                 }
             }
     }
@@ -24,7 +24,7 @@ class UserRepositoryImpl : UserRepository {
                     val userId = task.result?.user?.uid ?: ""
                     callback(true, userId, "Signup successful")
                 } else {
-                    callback(false, "", task.exception?.message ?: "Signup failed")
+                    callback(false, "", task.exception?.localizedMessage ?: "Signup failed")
                 }
             }
     }
@@ -35,7 +35,7 @@ class UserRepositoryImpl : UserRepository {
                 if (task.isSuccessful) {
                     callback(true, "Password reset email sent")
                 } else {
-                    callback(false, task.exception?.message ?: "Password reset failed")
+                    callback(false, task.exception?.localizedMessage ?: "Password reset failed")
                 }
             }
     }
