@@ -1,6 +1,7 @@
 package com.example.memoir.ui.activity
 
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -15,6 +16,7 @@ import com.example.memoir.ui.fragment.ViewEntriesFragment
 import com.example.memoir.ui.fragments.JournalEntryFragment
 
 class HomeActivity : AppCompatActivity() {
+
     private lateinit var binding: ActivityHomeBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,8 +37,11 @@ class HomeActivity : AppCompatActivity() {
                 R.id.nav_journal -> replaceFragment(JournalEntryFragment())
                 R.id.nav_calendar -> replaceFragment(CalendarFragment())
                 R.id.nav_edit_profile -> replaceFragment(EditProfileFragment())
-                R.id.nav_analytics -> replaceFragment(AnalyticsFragment()) // New Analytics Fragment
-                R.id.nav_view_entries -> replaceFragment(ViewEntriesFragment())
+                R.id.nav_analytics -> replaceFragment(AnalyticsFragment())
+                else -> {
+                    Log.w(TAG, "Unknown menu item selected: ${menuItem.itemId}")
+                    false
+                }
             }
             true
         }
@@ -50,9 +55,14 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun replaceFragment(fragment: Fragment) {
+        Log.d(TAG, "Replacing fragment with ${fragment::class.simpleName}")
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragmentContainer, fragment)
             .addToBackStack(null)  // Allows navigating back between fragments
             .commit()
+    }
+
+    companion object {
+        private const val TAG = "HomeActivity"
     }
 }

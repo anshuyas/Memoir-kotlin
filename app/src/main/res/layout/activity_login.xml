@@ -64,6 +64,16 @@
         android:textColor="@android:color/white"
         android:layout_marginBottom="12dp"/>
 
+    <Button
+        android:id="@+id/registerButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Register"
+        android:backgroundTint="@color/gray"
+        android:textColor="@android:color/white"
+        android:layout_marginBottom="12dp"/>
+
+
     <!-- Forgot Password Link -->
     <TextView
         android:id="@+id/forgotPassword"

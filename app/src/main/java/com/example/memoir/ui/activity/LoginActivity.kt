@@ -2,18 +2,22 @@ package com.example.memoir.ui.activity
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
+import android.util.Patterns
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import com.example.memoir.R
+import com.example.memoir.repository.UserRepositoryImpl
 import com.example.memoir.viewmodel.UserViewModel
+import com.example.memoir.viewmodel.UserViewModelFactory
 
 class LoginActivity : AppCompatActivity() {
 
-    private val userViewModel: UserViewModel by viewModels()
+    private lateinit var userViewModel: UserViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,28 +29,71 @@ class LoginActivity : AppCompatActivity() {
         val loginButton = findViewById<Button>(R.id.loginButton)
         val registerButton = findViewById<Button>(R.id.registerButton)
 
-        loginButton.setOnClickListener {
-            val email = emailInput.text.toString()
-            val password = passwordInput.text.toString()
+        // Initialize ViewModel with Factory
+        val repo = UserRepositoryImpl()
+        val factory = UserViewModelFactory(repo)
+        userViewModel = ViewModelProvider(this, factory)[UserViewModel::class.java]
 
-            if (email.isNotEmpty() && password.isNotEmpty()) {
-                userViewModel.login(email, password) { success, message ->
-                    if (success) {
-                        Toast.makeText(this, "Login Successful", Toast.LENGTH_SHORT).show()
-                        startActivity(Intent(this, HomeActivity::class.java))
-                        finish()
-                    } else {
-                        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
-                    }
-                }
-            } else {
-                Toast.makeText(this, "Enter valid credentials", Toast.LENGTH_SHORT).show()
+        // Set up click listeners
+        loginButton.setOnClickListener {
+            val email = emailInput.text.toString().trim()
+            val password = passwordInput.text.toString().trim()
+
+            if (validateInput(email, password)) {
+                loginUser(email, password)
             }
         }
 
         registerButton.setOnClickListener {
             startActivity(Intent(this, RegistrationActivity::class.java))
         }
+
+        // Observe ViewModel LiveData
+        observeViewModel()
+    }
+
+    private fun validateInput(email: String, password: String): Boolean {
+        return when {
+            email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
+                showToast("Enter a valid email")
+                false
+            }
+            password.isEmpty() -> {
+                showToast("Enter a valid password")
+                false
+            }
+            else -> true
+        }
+    }
+
+    private fun loginUser(email: String, password: String) {
+        Log.d(TAG, "Attempting to login user: $email")
+        userViewModel.login(email, password)
+    }
+
+    private fun observeViewModel() {
+        userViewModel.isLoginSuccessful.observe(this) { success ->
+            if (success) {
+                Log.d(TAG, "Login successful, navigating to HomeActivity")
+                showToast("Login Successful")
+                startActivity(Intent(this, HomeActivity::class.java))
+                finish() // Close the current activity
+            }
+        }
+
+        userViewModel.errorMessage.observe(this) { error ->
+            if (error.isNotEmpty()) {
+                Log.e(TAG, "Login error: $error")
+                showToast("Error: $error")
+            }
+        }
+    }
+
+    private fun showToast(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    companion object {
+        private const val TAG = "LoginActivity"
     }
 }
-

@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.memoir.databinding.FragmentViewEntriesBinding
-import com.example.memoir.model.JournalEntry
+import com.example.memoir.model.JournalEntryModel
 import com.example.memoir.ui.adapter.JournalEntryAdapter
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
@@ -20,7 +20,7 @@ class ViewEntriesFragment : Fragment() {
     private lateinit var database: DatabaseReference
     private lateinit var auth: FirebaseAuth
     private lateinit var adapter: JournalEntryAdapter
-    private val journalEntries = mutableListOf<JournalEntry>()
+    private val journalEntries = mutableListOf<JournalEntryModel>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -52,7 +52,7 @@ class ViewEntriesFragment : Fragment() {
             override fun onDataChange(snapshot: DataSnapshot) {
                 journalEntries.clear()
                 for (entrySnapshot in snapshot.children) {
-                    val entry = entrySnapshot.getValue(JournalEntry::class.java)
+                    val entry = entrySnapshot.getValue(JournalEntryModel::class.java)
                     entry?.let { journalEntries.add(it) }
                 }
                 adapter.notifyDataSetChanged()

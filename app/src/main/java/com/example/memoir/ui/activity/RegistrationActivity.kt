@@ -2,6 +2,7 @@ package com.example.memoir.ui.activity
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.util.Patterns
 import android.widget.Button
 import android.widget.EditText
@@ -32,6 +33,24 @@ class RegistrationActivity : AppCompatActivity() {
         val factory = UserViewModelFactory(repo)
         userViewModel = ViewModelProvider(this, factory)[UserViewModel::class.java]
 
+        // Observe registration success/failure
+        userViewModel.isRegistrationSuccessful.observe(this) { success ->
+            if (success) {
+                Log.d(TAG, "Registration successful, navigating to LoginActivity")
+                showToast("Registration Successful!")
+                startActivity(Intent(this, LoginActivity::class.java))
+                finish() // Close the current activity
+            }
+        }
+
+        // Observe error messages
+        userViewModel.errorMessage.observe(this) { message ->
+            if (message.isNotEmpty()) {
+                Log.e(TAG, "Registration error: $message")
+                showToast("Error: $message")
+            }
+        }
+
         registerButton.setOnClickListener {
             val email = emailInput.text.toString().trim()
             val password = passwordInput.text.toString().trim()
@@ -57,18 +76,15 @@ class RegistrationActivity : AppCompatActivity() {
     }
 
     private fun registerUser(email: String, password: String) {
-        userViewModel.signup(email, password) { success, userId, message ->
-            if (success) {
-                showToast("Registration Successful!")
-                startActivity(Intent(this, LoginActivity::class.java))
-                finish()
-            } else {
-                showToast("Error: $message")
-            }
-        }
+        Log.d(TAG, "Attempting to register user: $email")
+        userViewModel.signup(email, password)
     }
 
     private fun showToast(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    companion object {
+        private const val TAG = "RegistrationActivity"
     }
 }

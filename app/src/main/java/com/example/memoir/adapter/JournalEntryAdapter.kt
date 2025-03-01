@@ -4,9 +4,9 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.memoir.databinding.ItemJournalEntryBinding
-import com.example.memoir.model.JournalEntry
+import com.example.memoir.model.JournalEntryModel
 
-class JournalEntryAdapter(private val entries: List<JournalEntry>) :
+class JournalEntryAdapter(private val entries: List<JournalEntryModel>) :
     RecyclerView.Adapter<JournalEntryAdapter.EntryViewHolder>() {
 
     class EntryViewHolder(val binding: ItemJournalEntryBinding) :
