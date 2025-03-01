@@ -6,51 +6,6 @@
     android:padding="16dp"
     android:background="@color/white">
 
-    <!-- User Profile Section -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginBottom="16dp">
-
-        <!-- Profile Image -->
-        <ImageView
-            android:id="@+id/imageViewProfile"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:contentDescription="Profile Image"
-            android:scaleType="centerCrop"
-            android:src="@drawable/baseline_account_circle_24" />
-
-        <!-- User Name and Email -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:layout_marginStart="16dp">
-
-            <TextView
-                android:id="@+id/textViewUserName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="User Name"
-                android:textSize="18sp"
-                android:textColor="@color/black"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/textViewUserEmail"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="user@example.com"
-                android:textSize="14sp"
-                android:textColor="@color/black"
-                android:layout_marginTop="4dp" />
-        </LinearLayout>
-    </LinearLayout>
-
     <!-- Recent Journals Section -->
     <TextView
         android:layout_width="wrap_content"

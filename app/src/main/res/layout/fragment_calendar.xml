@@ -8,6 +8,7 @@
     android:gravity="center"
     android:background="@color/white">
 
+    <!-- Title -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -17,6 +18,7 @@
         android:textStyle="bold"
         android:layout_marginBottom="16dp" />
 
+    <!-- Calendar Card -->
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -25,10 +27,26 @@
         app:cardElevation="4dp"
         app:strokeColor="@color/brown">
 
+        <!-- AndroidX CalendarView -->
         <CalendarView
             android:id="@+id/calendarView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:dateTextAppearance="@style/TextAppearance.AppCompat.Medium" />
     </com.google.android.material.card.MaterialCardView>
+
+    <!-- RecyclerView for Journal Entries -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewJournals"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp" />
+
+    <!-- ProgressBar (Optional) -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone" />
 </LinearLayout>

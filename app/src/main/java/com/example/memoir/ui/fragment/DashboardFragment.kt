@@ -54,8 +54,6 @@ class DashboardFragment : Fragment() {
             navigateToFragment(CalendarFragment())
         }
 
-        // Fetch user data and recent journals
-        fetchUserData()
         fetchRecentJournals()
     }
 
@@ -67,43 +65,22 @@ class DashboardFragment : Fragment() {
         binding.recyclerViewJournals.adapter = journalAdapter
     }
 
-    private fun fetchUserData() {
-        val userId = auth.currentUser?.uid ?: return
-        firestore.collection("users").document(userId)
-            .get()
-            .addOnSuccessListener { document ->
-                if (document.exists()) {
-                    val userModel = document.toObject(UserModel::class.java)
-                    if (userModel != null) {
-                        updateUI(userModel)
-                        Log.d(TAG, "Fetched user profile: $userModel")
-                    } else {
-                        Log.e(TAG, "UserModel is null")
-                        Toast.makeText(requireContext(), "Failed to fetch user data.", Toast.LENGTH_SHORT).show()
-                    }
-                } else {
-                    Log.e(TAG, "User document does not exist")
-                    Toast.makeText(requireContext(), "User not found.", Toast.LENGTH_SHORT).show()
-                }
-            }
-            .addOnFailureListener { e ->
-                Log.e(TAG, "Failed to fetch user profile: ${e.message}", e)
-                Toast.makeText(requireContext(), "Failed to fetch profile. Please try again.", Toast.LENGTH_SHORT).show()
-            }
-    }
-
     private fun fetchRecentJournals() {
         val userId = auth.currentUser?.uid ?: return
+        Log.d(TAG, "Fetching journals for user: $userId")
+
         firestore.collection("journals")
             .whereEqualTo("userId", userId)
-            .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .orderBy("date", com.google.firebase.firestore.Query.Direction.DESCENDING)
             .limit(5) // Fetch the 5 most recent journals
             .get()
             .addOnSuccessListener { documents ->
+                Log.d(TAG, "Number of documents fetched: ${documents.size()}")
                 journalList.clear()
                 for (document in documents) {
                     val journalEntry = document.toObject(JournalEntryModel::class.java)
                     journalList.add(journalEntry)
+                    Log.d(TAG, "Fetched journal: ${journalEntry.title}")
                 }
                 journalAdapter.notifyDataSetChanged()
                 Log.d(TAG, "Fetched ${journalList.size} recent journals")
@@ -112,23 +89,6 @@ class DashboardFragment : Fragment() {
                 Log.e(TAG, "Failed to fetch journals: ${e.message}", e)
                 Toast.makeText(requireContext(), "Failed to fetch journals.", Toast.LENGTH_SHORT).show()
             }
-    }
-
-    private fun updateUI(userModel: UserModel) {
-        // Update TextViews with user data
-        binding.textViewUserName.text = userModel.userName
-        binding.textViewUserEmail.text = userModel.email
-
-        // Load profile image using Glide (if applicable)
-        if (!userModel.profileImageUrl.isNullOrEmpty()) {
-            Glide.with(requireContext())
-                .load(userModel.profileImageUrl)
-                .placeholder(R.drawable.baseline_account_circle_24)
-                .error(R.drawable.error)
-                .into(binding.imageViewProfile)
-        } else {
-            binding.imageViewProfile.setImageResource(R.drawable.baseline_account_circle_24)
-        }
     }
 
     private fun navigateToFragment(fragment: Fragment) {

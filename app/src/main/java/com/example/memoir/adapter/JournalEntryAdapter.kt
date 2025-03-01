@@ -7,27 +7,26 @@ import com.example.memoir.databinding.ItemJournalEntryBinding
 import com.example.memoir.model.JournalEntryModel
 
 class JournalEntryAdapter(
-    private val entries: List<JournalEntryModel>,
-    private val onItemClick: (JournalEntryModel) -> Unit // Optional: Add click listener
+    private val entries: List<JournalEntryModel>, // List of journal entries
+    private val onItemClick: (JournalEntryModel) -> Unit // Click listener for each entry
 ) : RecyclerView.Adapter<JournalEntryAdapter.EntryViewHolder>() {
 
-    // ViewHolder class
-    inner class EntryViewHolder(val binding: ItemJournalEntryBinding) :
-        RecyclerView.ViewHolder(binding.root) {
+    // ViewHolder for journal entries
+    inner class EntryViewHolder(private val binding: ItemJournalEntryBinding) : RecyclerView.ViewHolder(binding.root) {
+        fun bind(journalEntry: JournalEntryModel) {
+            // Bind data to views
+            binding.textTitle.text = journalEntry.title
+            binding.textContent.text = journalEntry.content
+            binding.textDate.text = journalEntry.date // Display the date
 
-        // Bind data to views
-        fun bind(entry: JournalEntryModel) {
-            binding.textTitle.text = entry.title
-            binding.textContent.text = entry.content
-            binding.textDate.text = entry.date
-
-            // Optional: Handle item clicks
+            // Set click listener for the entire item
             binding.root.setOnClickListener {
-                onItemClick(entry)
+                onItemClick(journalEntry)
             }
         }
     }
 
+    // Create ViewHolder
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): EntryViewHolder {
         val binding = ItemJournalEntryBinding.inflate(
             LayoutInflater.from(parent.context),
@@ -37,10 +36,13 @@ class JournalEntryAdapter(
         return EntryViewHolder(binding)
     }
 
+    // Bind data to ViewHolder
     override fun onBindViewHolder(holder: EntryViewHolder, position: Int) {
-        val entry = entries[position]
-        holder.bind(entry) // Delegate binding to ViewHolder
+        holder.bind(entries[position])
     }
 
-    override fun getItemCount() = entries.size
+    // Return the number of journal entries
+    override fun getItemCount(): Int {
+        return entries.size
+    }
 }

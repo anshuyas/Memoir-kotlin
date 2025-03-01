@@ -1,60 +1,110 @@
 package com.example.memoir.ui.fragment
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.example.memoir.R
+import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.memoir.databinding.FragmentCalendarBinding
+import com.example.memoir.model.JournalEntryModel
+import com.example.memoir.ui.adapter.JournalEntryAdapter
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
-/**
- * A simple [Fragment] subclass.
- * Use the [CalendarFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
 class CalendarFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+    private var _binding: FragmentCalendarBinding? = null
+    private val binding get() = _binding!!
+
+    private lateinit var journalAdapter: JournalEntryAdapter
+    private val journalList = mutableListOf<JournalEntryModel>()
+
+    private val auth = FirebaseAuth.getInstance()
+    private val firestore = FirebaseFirestore.getInstance()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_calendar, container, false)
+        // Initialize View Binding
+        _binding = FragmentCalendarBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // Set up RecyclerView
+        setupRecyclerView()
+
+        // Set up calendar date selection listener
+        binding.calendarView.setOnDateChangeListener { _, year, month, dayOfMonth ->
+            val selectedDate = formatDate(year, month, dayOfMonth)
+            fetchJournalEntriesForDate(selectedDate)
+        }
+    }
+
+    private fun setupRecyclerView() {
+        journalAdapter = JournalEntryAdapter(journalList) { entry ->
+            // Handle journal entry click (optional)
+            Toast.makeText(requireContext(), "Clicked: ${entry.title}", Toast.LENGTH_SHORT).show()
+        }
+        binding.recyclerViewJournals.layoutManager = LinearLayoutManager(requireContext())
+        binding.recyclerViewJournals.adapter = journalAdapter
+    }
+
+    private fun fetchJournalEntriesForDate(date: String) {
+        val userId = auth.currentUser?.uid ?: return
+        Log.d(TAG, "Fetching journal entries for date: $date")
+
+        // Show ProgressBar
+        binding.progressBar.visibility = View.VISIBLE
+
+        firestore.collection("journals")
+            .whereEqualTo("userId", userId)
+            .whereEqualTo("date", date)
+            .get()
+            .addOnSuccessListener { documents ->
+                Log.d(TAG, "Number of documents fetched: ${documents.size()}")
+                journalList.clear()
+                for (document in documents) {
+                    val journalEntry = document.toObject(JournalEntryModel::class.java)
+                    journalList.add(journalEntry)
+                    Log.d(TAG, "Fetched journal: ${journalEntry.title}")
+                }
+                journalAdapter.notifyDataSetChanged()
+
+                // Hide ProgressBar
+                binding.progressBar.visibility = View.GONE
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Failed to fetch journal entries: ${e.message}", e)
+
+                // Hide ProgressBar
+                binding.progressBar.visibility = View.GONE
+            }
+    }
+
+    private fun formatDate(year: Int, month: Int, dayOfMonth: Int): String {
+        val calendar = java.util.Calendar.getInstance()
+        calendar.set(year, month, dayOfMonth)
+        val date = calendar.time
+        val format = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        return format.format(date)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment CalendarFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            CalendarFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
-            }
+        private const val TAG = "CalendarFragment"
     }
 }

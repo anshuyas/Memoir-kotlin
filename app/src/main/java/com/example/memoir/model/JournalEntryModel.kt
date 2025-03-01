@@ -5,7 +5,6 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class JournalEntryModel(
-    var id: String = "",
     val userId: String = "",
     val title: String = "",
     val content: String = "",

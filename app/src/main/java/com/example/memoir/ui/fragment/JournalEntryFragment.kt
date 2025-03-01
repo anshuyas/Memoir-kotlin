@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.example.memoir.databinding.FragmentJournalEntryBinding
 import com.example.memoir.model.JournalEntryModel
+import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import java.util.Date
@@ -35,13 +36,11 @@ class JournalEntryFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Retrieve the journal entry from arguments (if any)
-        journalEntry = arguments?.getParcelable("journalEntry")
-
-        // If editing an existing entry, populate the fields
-        journalEntry?.let {
-            binding.entryTitle.setText(it.title)
-            binding.entryContent.setText(it.content)
+        // Check if Firebase is initialized
+        if (FirebaseApp.getApps(requireContext()).isEmpty()) {
+            Toast.makeText(requireContext(), "Firebase not initialized", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(requireContext(), "Firebase connected!", Toast.LENGTH_SHORT).show()
         }
 
         // Set up save button click listener
