@@ -21,6 +21,9 @@ class JournalEntryFragment : Fragment() {
     private val auth = FirebaseAuth.getInstance()
     private val firestore = FirebaseFirestore.getInstance()
 
+    // Journal entry to edit (if any)
+    private var journalEntry: JournalEntryModel? = null
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -31,6 +34,15 @@ class JournalEntryFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // Retrieve the journal entry from arguments (if any)
+        journalEntry = arguments?.getParcelable("journalEntry")
+
+        // If editing an existing entry, populate the fields
+        journalEntry?.let {
+            binding.entryTitle.setText(it.title)
+            binding.entryContent.setText(it.content)
+        }
 
         // Set up save button click listener
         binding.saveEntryButton.setOnClickListener {
@@ -52,7 +64,7 @@ class JournalEntryFragment : Fragment() {
             return
         }
 
-        // Create a new journal entry
+        // Create or update a journal entry
         val journalEntry = JournalEntryModel(
             userId = userId,
             title = title,
@@ -60,16 +72,32 @@ class JournalEntryFragment : Fragment() {
             date = Date().toString() // Use current date as a string
         )
 
-        // Save the entry to Firestore
-        firestore.collection("journals")
-            .add(journalEntry)
-            .addOnSuccessListener {
-                Toast.makeText(requireContext(), "Entry saved successfully!", Toast.LENGTH_SHORT).show()
-                clearFields()
+        if (this.journalEntry != null) {
+            // Update existing entry
+            val entryId = arguments?.getString("entryId") // Get the Firestore document ID
+            if (entryId != null) {
+                firestore.collection("journals").document(entryId)
+                    .set(journalEntry)
+                    .addOnSuccessListener {
+                        Toast.makeText(requireContext(), "Entry updated successfully!", Toast.LENGTH_SHORT).show()
+                        clearFields()
+                    }
+                    .addOnFailureListener { e ->
+                        Toast.makeText(requireContext(), "Failed to update entry: ${e.message}", Toast.LENGTH_SHORT).show()
+                    }
             }
-            .addOnFailureListener { e ->
-                Toast.makeText(requireContext(), "Failed to save entry: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
+        } else {
+            // Save new entry
+            firestore.collection("journals")
+                .add(journalEntry)
+                .addOnSuccessListener {
+                    Toast.makeText(requireContext(), "Entry saved successfully!", Toast.LENGTH_SHORT).show()
+                    clearFields()
+                }
+                .addOnFailureListener { e ->
+                    Toast.makeText(requireContext(), "Failed to save entry: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+        }
     }
 
     private fun clearFields() {
@@ -80,5 +108,24 @@ class JournalEntryFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    companion object {
+        private const val ARG_JOURNAL_ENTRY = "journalEntry"
+        private const val ARG_ENTRY_ID = "entryId"
+
+        fun newInstance(): JournalEntryFragment {
+            return JournalEntryFragment()
+        }
+
+        fun newInstance(journalEntry: JournalEntryModel, entryId: String): JournalEntryFragment {
+            val fragment = JournalEntryFragment()
+            val args = Bundle().apply {
+                putParcelable(ARG_JOURNAL_ENTRY, journalEntry)
+                putString(ARG_ENTRY_ID, entryId)
+            }
+            fragment.arguments = args
+            return fragment
+        }
     }
 }

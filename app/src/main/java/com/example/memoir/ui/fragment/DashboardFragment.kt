@@ -61,7 +61,7 @@ class DashboardFragment : Fragment() {
 
     private fun setupRecyclerView() {
         journalAdapter = JournalEntryAdapter(journalList) {entry ->
-            navigateToFragment(JournalEntryFragment.newInstance(entry))
+            navigateToFragment(JournalEntryFragment.newInstance(entry, entry.id))
         }
         binding.recyclerViewJournals.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerViewJournals.adapter = journalAdapter
